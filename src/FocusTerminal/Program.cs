@@ -63,7 +63,7 @@ class Program
                     Console.WriteLine("Saliendo del programa...");
                     break;
                 default:
-                    Console.WriteLine("Opción no válida.");
+                    Console.WriteLine("Opción no válida");
                     PausarPantalla();
                     break;
             }
@@ -95,7 +95,7 @@ class Program
     static void MostrarDashboard()
     {
         Console.Clear();
-        Console.WriteLine("Mostrar dashboard: función pendiente de implementación.");
+        Console.WriteLine("Mostrar dashboard: función pendiente de implementación");
         PausarPantalla();
     }
 
@@ -113,28 +113,28 @@ class Program
     static void AgregarTarea()
     {
         Console.Clear();
-        Console.WriteLine("Agregar tarea: función pendiente de implementación.");
+        Console.WriteLine("Agregar tarea: función pendiente de implementación");
         PausarPantalla();
     }
 
     static void EditarTarea()
     {
         Console.Clear();
-        Console.WriteLine("Editar tarea: función pendiente de implementación.");
+        Console.WriteLine("Editar tarea: función pendiente de implementación");
         PausarPantalla();
     }
 
     static void CambiarEstado()
     {
         Console.Clear();
-        Console.WriteLine("Cambiar estado: función pendiente de implementación.");
+        Console.WriteLine("Cambiar estado: función pendiente de implementación");
         PausarPantalla();
     }
 
     static void EliminarTarea()
     {
         Console.Clear();
-        Console.WriteLine("Eliminar tarea: función pendiente de implementación.");
+        Console.WriteLine("Eliminar tarea: función pendiente de implementación");
         PausarPantalla();
     }
 
@@ -145,14 +145,14 @@ class Program
     static void FiltrarTareas()
     {
         Console.Clear();
-        Console.WriteLine("Filtrar tareas: función pendiente de implementación.");
+        Console.WriteLine("Filtrar tareas: función pendiente de implementación");
         PausarPantalla();
     }
 
     static void MostrarReporte()
     {
         Console.Clear();
-        Console.WriteLine("Mostrar reporte: función pendiente de implementación.");
+        Console.WriteLine("Mostrar reporte: función pendiente de implementación");
         PausarPantalla();
     }
 
@@ -162,12 +162,12 @@ class Program
 
     static void GuardarTareas()
     {
-        // Función pendiente de implementación.
+        // Función pendiente de implementación
     }
 
     static void CargarTareas()
     {
-        // Función pendiente de implementación.
+        // Función pendiente de implementación
     }
 
     // =======================================
@@ -176,25 +176,25 @@ class Program
 
     static bool ValidarTitulo(string titulo)
     {
-        // Función pendiente de implementación.
+        // Función pendiente de implementación
         return false;
     }
 
     static bool ValidarPrioridad(string prioridad)
     {
-        // Función pendiente de implementación.
+        // Función pendiente de implementación
         return false;
     }
 
     static bool ValidarEstado(string estado)
     {
-        // Función pendiente de implementación.
+        // Función pendiente de implementación
         return false;
     }
 
     static bool ValidarFecha(string fecha)
     {
-        // Función pendiente de implementación.
+        // Función pendiente de implementación
         return false;
     }
 
@@ -216,7 +216,7 @@ class Program
 
     static string LimpiarSeparador(string texto)
     {
-        // Función pendiente de implementación.
+        // Función pendiente de implementación
         return texto;
     }
 }
