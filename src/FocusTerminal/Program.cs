@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 class Program
 {
@@ -95,7 +96,39 @@ class Program
     static void MostrarDashboard()
     {
         Console.Clear();
-        Console.WriteLine("Mostrar dashboard: función pendiente de implementación");
+        Console.WriteLine("=======================================");
+        Console.WriteLine("        DASHBOARD DE TAREAS");
+        Console.WriteLine("=======================================");
+        Console.WriteLine();
+
+        if (titulos.Count == 0)
+        {
+            Console.WriteLine("No hay tareas registradas");
+            PausarPantalla();
+            return;
+        }
+
+        Console.WriteLine(
+            "No.".PadRight(5) +
+            "Titulo".PadRight(25) +
+            "Prioridad".PadRight(12) +
+            "Fecha".PadRight(14) +
+            "Estado".PadRight(15) +
+            "Categoria".PadRight(20));
+
+        Console.WriteLine(new string('-', 91));
+
+        for (int i = 0; i < titulos.Count; i++)
+        {
+            Console.WriteLine(
+                (i + 1).ToString().PadRight(5) +
+                titulos[i].PadRight(25) +
+                prioridades[i].PadRight(12) +
+                fechasLimite[i].PadRight(14) +
+                estados[i].PadRight(15) +
+                categorias[i].PadRight(20));
+        }
+
         PausarPantalla();
     }
 
@@ -113,7 +146,100 @@ class Program
     static void AgregarTarea()
     {
         Console.Clear();
-        Console.WriteLine("Agregar tarea: función pendiente de implementación");
+        Console.WriteLine("=======================================");
+        Console.WriteLine("            AGREGAR TAREA");
+        Console.WriteLine("=======================================");
+        Console.WriteLine();
+
+        string titulo;
+        string prioridad;
+        string fechaLimite;
+        string estado;
+        string categoria;
+        string descripcion;
+
+        do
+        {
+            Console.Write("Titulo: ");
+            titulo = Console.ReadLine() ?? "";
+
+            if (!ValidarTitulo(titulo))
+            {
+                Console.WriteLine("El titulo no puede estar vacio.");
+            }
+        }
+        while (!ValidarTitulo(titulo));
+
+        do
+        {
+            Console.Write("Prioridad (ALTA, MEDIA, BAJA): ");
+            prioridad = Console.ReadLine() ?? "";
+
+            if (!ValidarPrioridad(prioridad))
+            {
+                Console.WriteLine("La prioridad debe ser ALTA, MEDIA o BAJA.");
+            }
+        }
+        while (!ValidarPrioridad(prioridad));
+
+        prioridad = prioridad.Trim().ToUpper();
+
+        do
+        {
+            Console.Write("Fecha limite (dd/MM/yyyy o --): ");
+            fechaLimite = Console.ReadLine() ?? "";
+
+            if (!ValidarFecha(fechaLimite))
+            {
+                Console.WriteLine("La fecha debe tener el formato dd/MM/yyyy o ser --.");
+            }
+        }
+        while (!ValidarFecha(fechaLimite));
+
+        fechaLimite = fechaLimite.Trim();
+
+        do
+        {
+            Console.Write("Estado (Pendiente, En progreso, Completada): ");
+            estado = Console.ReadLine() ?? "";
+
+            if (!ValidarEstado(estado))
+            {
+                Console.WriteLine("El estado debe ser Pendiente, En progreso o Completada.");
+            }
+        }
+        while (!ValidarEstado(estado));
+
+        estado = estado.Trim().ToLower();
+
+        if (estado == "pendiente")
+        {
+            estado = "Pendiente";
+        }
+        else if (estado == "en progreso")
+        {
+            estado = "En progreso";
+        }
+        else
+        {
+            estado = "Completada";
+        }
+
+        Console.Write("Categoria: ");
+        categoria = Console.ReadLine() ?? "";
+
+        Console.Write("Descripcion: ");
+        descripcion = Console.ReadLine() ?? "";
+
+        titulos.Add(LimpiarSeparador(titulo.Trim()));
+        prioridades.Add(prioridad);
+        fechasLimite.Add(fechaLimite);
+        estados.Add(estado);
+        categorias.Add(LimpiarSeparador(categoria.Trim()));
+        descripciones.Add(LimpiarSeparador(descripcion.Trim()));
+
+        Console.WriteLine();
+        Console.WriteLine("Tarea agregada correctamente");
         PausarPantalla();
     }
 
@@ -176,26 +302,36 @@ class Program
 
     static bool ValidarTitulo(string titulo)
     {
-        // Función pendiente de implementación
-        return false;
+        return !string.IsNullOrWhiteSpace(titulo);
     }
 
     static bool ValidarPrioridad(string prioridad)
     {
-        // Función pendiente de implementación
-        return false;
+        prioridad = prioridad.Trim().ToUpper();
+        return prioridad == "ALTA" || prioridad == "MEDIA" || prioridad == "BAJA";
     }
 
     static bool ValidarEstado(string estado)
     {
-        // Función pendiente de implementación
-        return false;
+        estado = estado.Trim().ToLower();
+        return estado == "pendiente" || estado == "en progreso" || estado == "completada";
     }
 
     static bool ValidarFecha(string fecha)
     {
-        // Función pendiente de implementación
-        return false;
+        fecha = fecha.Trim();
+
+        if (fecha == "--")
+        {
+            return true;
+        }
+
+        return DateTime.TryParseExact(
+            fecha,
+            "dd/MM/yyyy",
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out _);
     }
 
     static int LeerOpcionEntera(string mensaje)
@@ -216,7 +352,6 @@ class Program
 
     static string LimpiarSeparador(string texto)
     {
-        // Función pendiente de implementación
-        return texto;
+        return texto.Replace("|", " ");
     }
 }
