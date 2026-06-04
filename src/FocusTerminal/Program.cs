@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 
 class Program
 {
@@ -20,6 +21,7 @@ class Program
     static List<string> descripciones = new List<string>();
 
     const string ArchivoTareas = "tareas.txt";
+    const string ArchivoBackup = "tareas_backup.txt";
 
     // =======================================
     // MAIN
@@ -939,12 +941,126 @@ class Program
 
     static void GuardarTareas()
     {
-        // Función pendiente de implementación
+        try
+        {
+            if (File.Exists(ArchivoTareas))
+            {
+                File.Copy(ArchivoTareas, ArchivoBackup, true);
+            }
+
+            using (StreamWriter escritor = new StreamWriter(ArchivoTareas))
+            {
+                for (int i = 0; i < titulos.Count; i++)
+                {
+                    escritor.WriteLine(CrearLineaTarea(i));
+                }
+            }
+        }
+        catch
+        {
+            Console.WriteLine("Error al guardar las tareas.");
+        }
     }
 
     static void CargarTareas()
     {
-        // Función pendiente de implementación
+        LimpiarListasTareas();
+
+        string rutaArchivo;
+        bool cargarDesdeBackup = false;
+
+        if (File.Exists(ArchivoTareas))
+        {
+            rutaArchivo = ArchivoTareas;
+        }
+        else if (File.Exists(ArchivoBackup))
+        {
+            rutaArchivo = ArchivoBackup;
+            cargarDesdeBackup = true;
+        }
+        else
+        {
+            return;
+        }
+
+        try
+        {
+            CargarDesdeArchivo(rutaArchivo);
+
+            if (cargarDesdeBackup)
+            {
+                File.Copy(ArchivoBackup, ArchivoTareas, true);
+            }
+        }
+        catch
+        {
+            Console.WriteLine("Error al cargar las tareas.");
+        }
+    }
+
+    static string CrearLineaTarea(int indice)
+    {
+        return LimpiarSeparador(titulos[indice].Trim()) + "|" +
+               LimpiarSeparador(prioridades[indice].Trim()) + "|" +
+               LimpiarSeparador(fechasLimite[indice].Trim()) + "|" +
+               LimpiarSeparador(estados[indice].Trim()) + "|" +
+               LimpiarSeparador(categorias[indice].Trim()) + "|" +
+               LimpiarSeparador(descripciones[indice].Trim());
+    }
+
+    static void CargarDesdeArchivo(string rutaArchivo)
+    {
+        using (StreamReader lector = new StreamReader(rutaArchivo))
+        {
+            string? linea;
+
+            while ((linea = lector.ReadLine()) != null)
+            {
+                if (string.IsNullOrWhiteSpace(linea))
+                {
+                    continue;
+                }
+
+                string[] partes = linea.Split('|');
+
+                if (partes.Length != 6)
+                {
+                    continue;
+                }
+
+                string titulo = partes[0].Trim();
+                string prioridad = partes[1].Trim();
+                string fechaLimite = partes[2].Trim();
+                string estado = partes[3].Trim();
+                string categoria = partes[4].Trim();
+                string descripcion = partes[5].Trim();
+
+                if (!ValidarTitulo(titulo) ||
+                    !ValidarPrioridad(prioridad) ||
+                    !ValidarFecha(fechaLimite) ||
+                    !ValidarEstado(estado))
+                {
+                    continue;
+                }
+
+                titulos.Add(titulo);
+                prioridades.Add(prioridad.ToUpper());
+                fechasLimite.Add(fechaLimite);
+                estados.Add(NormalizarEstado(estado));
+                categorias.Add(categoria);
+                descripciones.Add(descripcion);
+            }
+        }
+    }
+
+    static void LimpiarListasTareas()
+    {
+        titulos.Clear();
+        prioridades.Clear();
+        fechasLimite.Clear();
+        estados.Clear();
+        categorias.Clear();
+        descripciones.Clear();
     }
 
     // =======================================
