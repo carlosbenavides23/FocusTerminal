@@ -116,9 +116,10 @@ class Program
             "Prioridad".PadRight(12) +
             "Fecha".PadRight(14) +
             "Estado".PadRight(15) +
-            "Categoria".PadRight(20));
+            "Categoria".PadRight(20) +
+            "Descripcion".PadRight(30));
 
-        Console.WriteLine(new string('-', 91));
+        Console.WriteLine(new string('-', 121));
 
         for (int i = 0; i < titulos.Count; i++)
         {
@@ -128,7 +129,8 @@ class Program
                 prioridades[i].PadRight(12) +
                 fechasLimite[i].PadRight(14) +
                 estados[i].PadRight(15) +
-                FormatearColumna(categorias[i], 20));
+                FormatearColumna(categorias[i], 20) +
+                FormatearColumna(descripciones[i], 30));
         }
 
         PausarPantalla();
@@ -186,17 +188,21 @@ class Program
 
         do
         {
-            Console.Write("Prioridad (ALTA, MEDIA, BAJA): ");
-            prioridad = Console.ReadLine() ?? "";
+            prioridad = SeleccionarPrioridad();
 
-            if (!ValidarPrioridad(prioridad))
+            if (prioridad == "")
             {
-                Console.WriteLine("La prioridad debe ser ALTA, MEDIA o BAJA.");
+                Console.WriteLine("Opcion no valida.");
             }
         }
-        while (!ValidarPrioridad(prioridad));
+        while (prioridad == "");
 
-        prioridad = prioridad.Trim().ToUpper();
+        if (prioridad == "0")
+        {
+            Console.WriteLine("Operacion cancelada.");
+            PausarPantalla();
+            return;
+        }
 
         do
         {
@@ -214,31 +220,39 @@ class Program
 
         do
         {
-            Console.Write("Estado (Pendiente, En progreso, Completada): ");
-            estado = Console.ReadLine() ?? "";
+            estado = SeleccionarEstado();
 
-            if (!ValidarEstado(estado))
+            if (estado == "")
             {
-                Console.WriteLine("El estado debe ser Pendiente, En progreso o Completada.");
+                Console.WriteLine("Opcion no valida.");
             }
         }
-        while (!ValidarEstado(estado));
+        while (estado == "");
 
-        estado = NormalizarEstado(estado);
+        if (estado == "0")
+        {
+            Console.WriteLine("Operacion cancelada.");
+            PausarPantalla();
+            return;
+        }
 
         do
         {
-            MostrarCategoriasBasicas();
-            Console.Write("Categoria: ");
-            categoria = Console.ReadLine() ?? "";
-            categoria = ObtenerCategoriaBasica(categoria);
+            categoria = SeleccionarCategoria();
 
-            if (string.IsNullOrWhiteSpace(categoria))
+            if (categoria == "")
             {
-                Console.WriteLine("La categoria no puede estar vacia.");
+                Console.WriteLine("Opcion no valida.");
             }
         }
-        while (string.IsNullOrWhiteSpace(categoria));
+        while (categoria == "");
+
+        if (categoria == "CANCELAR")
+        {
+            Console.WriteLine("Operacion cancelada.");
+            PausarPantalla();
+            return;
+        }
 
         Console.Write("Descripcion: ");
         descripcion = Console.ReadLine() ?? "";
@@ -255,43 +269,121 @@ class Program
         PausarPantalla();
     }
 
-    static void MostrarCategoriasBasicas()
+    static string SeleccionarPrioridad()
     {
-        Console.WriteLine("Categorias basicas:");
+        Console.WriteLine();
+        Console.WriteLine("Prioridades:");
+        Console.WriteLine("1. ALTA");
+        Console.WriteLine("2. MEDIA");
+        Console.WriteLine("3. BAJA");
+        Console.WriteLine("0. Cancelar");
+
+        int opcion = LeerOpcionEntera("Seleccione una prioridad: ");
+
+        if (opcion == 1)
+        {
+            return "ALTA";
+        }
+        else if (opcion == 2)
+        {
+            return "MEDIA";
+        }
+        else if (opcion == 3)
+        {
+            return "BAJA";
+        }
+        else if (opcion == 0)
+        {
+            return "0";
+        }
+
+        return "";
+    }
+
+    static string SeleccionarEstado()
+    {
+        Console.WriteLine();
+        Console.WriteLine("Estados:");
+        Console.WriteLine("1. Pendiente");
+        Console.WriteLine("2. En progreso");
+        Console.WriteLine("3. Completada");
+        Console.WriteLine("0. Cancelar");
+
+        int opcion = LeerOpcionEntera("Seleccione un estado: ");
+
+        if (opcion == 1)
+        {
+            return "Pendiente";
+        }
+        else if (opcion == 2)
+        {
+            return "En progreso";
+        }
+        else if (opcion == 3)
+        {
+            return "Completada";
+        }
+        else if (opcion == 0)
+        {
+            return "0";
+        }
+
+        return "";
+    }
+
+    static string SeleccionarCategoria()
+    {
+        Console.WriteLine();
+        Console.WriteLine("Categorias:");
         Console.WriteLine("1. Estudio");
         Console.WriteLine("2. Trabajo");
         Console.WriteLine("3. Personal");
         Console.WriteLine("4. Salud");
         Console.WriteLine("5. Hogar");
-        Console.WriteLine("Tambien puede escribir otra categoria.");
-    }
+        Console.WriteLine("6. Otra categoria");
+        Console.WriteLine("0. Cancelar");
 
-    static string ObtenerCategoriaBasica(string categoria)
-    {
-        string categoriaLimpia = categoria.Trim();
+        int opcion = LeerOpcionEntera("Seleccione una categoria: ");
 
-        if (categoriaLimpia == "1")
+        if (opcion == 1)
         {
             return "Estudio";
         }
-        else if (categoriaLimpia == "2")
+        else if (opcion == 2)
         {
             return "Trabajo";
         }
-        else if (categoriaLimpia == "3")
+        else if (opcion == 3)
         {
             return "Personal";
         }
-        else if (categoriaLimpia == "4")
+        else if (opcion == 4)
         {
             return "Salud";
         }
-        else if (categoriaLimpia == "5")
+        else if (opcion == 5)
         {
             return "Hogar";
         }
+        else if (opcion == 6)
+        {
+            Console.Write("Nueva categoria: ");
+            string categoria = Console.ReadLine() ?? "";
 
-        return categoria;
+            if (string.IsNullOrWhiteSpace(categoria))
+            {
+                Console.WriteLine("La categoria no puede estar vacia.");
+                return "";
+            }
+
+            return LimpiarSeparador(categoria.Trim());
+        }
+        else if (opcion == 0)
+        {
+            return "CANCELAR";
+        }
+
+        return "";
     }
 
     static void EditarTarea()
@@ -402,10 +494,12 @@ class Program
             return;
         }
 
-        string nuevoEstado = LeerEstadoPorOpcion();
+        string nuevoEstado = SeleccionarEstado();
 
         if (nuevoEstado == "0")
         {
+            Console.WriteLine("Operacion cancelada.");
+            PausarPantalla();
             return;
         }
 
@@ -570,36 +664,6 @@ class Program
         return numero - 1;
     }
 
-    static string LeerEstadoPorOpcion()
-    {
-        Console.WriteLine();
-        Console.WriteLine("0. Volver al menu principal");
-        Console.WriteLine("1. Pendiente");
-        Console.WriteLine("2. En progreso");
-        Console.WriteLine("3. Completada");
-
-        int opcion = LeerOpcionEntera("Seleccione el nuevo estado: ");
-
-        if (opcion == 0)
-        {
-            return "0";
-        }
-        else if (opcion == 1)
-        {
-            return "Pendiente";
-        }
-        else if (opcion == 2)
-        {
-            return "En progreso";
-        }
-        else if (opcion == 3)
-        {
-            return "Completada";
-        }
-
-        return "";
-    }
-
     static string NormalizarEstado(string estado)
     {
         estado = estado.Trim().ToLower();
@@ -633,16 +697,21 @@ class Program
 
     static bool EditarPrioridad(int indice)
     {
-        Console.Write("Nueva prioridad (ALTA, MEDIA, BAJA): ");
-        string prioridad = Console.ReadLine() ?? "";
+        string prioridad = SeleccionarPrioridad();
 
-        if (!ValidarPrioridad(prioridad))
+        if (prioridad == "0")
         {
-            Console.WriteLine("La prioridad debe ser ALTA, MEDIA o BAJA.");
+            Console.WriteLine("Operacion cancelada.");
             return false;
         }
 
-        prioridades[indice] = prioridad.Trim().ToUpper();
+        if (prioridad == "")
+        {
+            Console.WriteLine("Opcion no valida.");
+            return false;
+        }
+
+        prioridades[indice] = prioridad;
         return true;
     }
 
@@ -663,31 +732,41 @@ class Program
 
     static bool EditarEstado(int indice)
     {
-        Console.Write("Nuevo estado (Pendiente, En progreso, Completada): ");
-        string estado = Console.ReadLine() ?? "";
+        string estado = SeleccionarEstado();
 
-        if (!ValidarEstado(estado))
+        if (estado == "0")
         {
-            Console.WriteLine("El estado debe ser Pendiente, En progreso o Completada.");
+            Console.WriteLine("Operacion cancelada.");
             return false;
         }
 
-        estados[indice] = NormalizarEstado(estado);
+        if (estado == "")
+        {
+            Console.WriteLine("Opcion no valida.");
+            return false;
+        }
+
+        estados[indice] = estado;
         return true;
     }
 
     static bool EditarCategoria(int indice)
     {
-        Console.Write("Nueva categoria: ");
-        string categoria = Console.ReadLine() ?? "";
+        string categoria = SeleccionarCategoria();
 
-        if (string.IsNullOrWhiteSpace(categoria))
+        if (categoria == "CANCELAR")
         {
-            Console.WriteLine("La categoria no puede estar vacia.");
+            Console.WriteLine("Operacion cancelada.");
             return false;
         }
 
-        categorias[indice] = LimpiarSeparador(categoria.Trim());
+        if (categoria == "")
+        {
+            Console.WriteLine("Opcion no valida.");
+            return false;
+        }
+
+        categorias[indice] = categoria.Trim();
         return true;
     }
 
@@ -805,48 +884,133 @@ class Program
 
     static void FiltrarPorPrioridad()
     {
-        Console.Write("Prioridad (ALTA, MEDIA, BAJA): ");
-        string prioridad = Console.ReadLine() ?? "";
+        string prioridad = SeleccionarPrioridad();
 
-        if (!ValidarPrioridad(prioridad))
+        if (prioridad == "0")
         {
-            Console.WriteLine("La prioridad debe ser ALTA, MEDIA o BAJA.");
+            Console.WriteLine("Operacion cancelada.");
             return;
         }
 
-        prioridad = prioridad.Trim().ToUpper();
+        if (prioridad == "")
+        {
+            Console.WriteLine("Opcion no valida.");
+            return;
+        }
+
         MostrarResultadosPorPrioridad(prioridad);
     }
 
     static void FiltrarPorEstado()
     {
-        Console.Write("Estado (Pendiente, En progreso, Completada): ");
-        string estado = Console.ReadLine() ?? "";
+        string estado = SeleccionarEstado();
 
-        if (!ValidarEstado(estado))
+        if (estado == "0")
         {
-            Console.WriteLine("El estado debe ser Pendiente, En progreso o Completada.");
+            Console.WriteLine("Operacion cancelada.");
             return;
         }
 
-        estado = NormalizarEstado(estado);
+        if (estado == "")
+        {
+            Console.WriteLine("Opcion no valida.");
+            return;
+        }
+
         MostrarResultadosPorEstado(estado);
     }
 
     static void FiltrarPorCategoria()
     {
-        Console.Write("Categoria: ");
-        string categoria = Console.ReadLine() ?? "";
+        List<string> categoriasExistentes = ObtenerCategoriasExistentes();
 
-        if (string.IsNullOrWhiteSpace(categoria))
+        if (categoriasExistentes.Count == 0)
         {
-            Console.WriteLine("Debe ingresar una categoria para filtrar.");
+            Console.WriteLine("No hay categorias registradas.");
             return;
         }
 
-        categoria = categoria.Trim().ToLower();
+        Console.WriteLine("Categorias disponibles:");
 
-        MostrarResultadosPorCategoria(categoria);
+        for (int i = 0; i < categoriasExistentes.Count; i++)
+        {
+            Console.WriteLine((i + 1) + ". " + categoriasExistentes[i]);
+        }
+
+        Console.WriteLine("M. Busqueda manual");
+        Console.WriteLine("0. Volver al menu principal");
+        Console.Write("Seleccione una opcion: ");
+
+        string entrada = (Console.ReadLine() ?? "").Trim();
+
+        if (entrada == "0")
+        {
+            Console.WriteLine("Operacion cancelada.");
+            return;
+        }
+
+        if (entrada.ToUpper() == "M")
+        {
+            Console.Write("Texto de busqueda: ");
+            string busqueda = (Console.ReadLine() ?? "").Trim();
+
+            if (string.IsNullOrWhiteSpace(busqueda))
+            {
+                Console.WriteLine("Debe ingresar una categoria para filtrar.");
+                return;
+            }
+
+            MostrarResultadosPorCategoria(busqueda, false);
+            return;
+        }
+
+        int opcion;
+
+        if (!int.TryParse(entrada, out opcion) ||
+            opcion < 1 ||
+            opcion > categoriasExistentes.Count)
+        {
+            Console.WriteLine("Opcion no valida.");
+            return;
+        }
+
+        MostrarResultadosPorCategoria(categoriasExistentes[opcion - 1], true);
+    }
+
+    static List<string> ObtenerCategoriasExistentes()
+    {
+        List<string> categoriasExistentes = new List<string>();
+
+        for (int i = 0; i < categorias.Count; i++)
+        {
+            string categoria = categorias[i].Trim();
+
+            if (string.IsNullOrWhiteSpace(categoria))
+            {
+                continue;
+            }
+
+            bool repetida = false;
+
+            for (int j = 0; j < categoriasExistentes.Count; j++)
+            {
+                if (string.Equals(
+                    categoriasExistentes[j],
+                    categoria,
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    repetida = true;
+                    break;
+                }
+            }
+
+            if (!repetida)
+            {
+                categoriasExistentes.Add(categoria);
+            }
+        }
+
+        return categoriasExistentes;
     }
 
     static void MostrarEncabezadoResultados()
@@ -915,14 +1079,19 @@ class Program
         }
     }
 
-    static void MostrarResultadosPorCategoria(string categoria)
+    static void MostrarResultadosPorCategoria(string categoria, bool coincidenciaExacta)
     {
         bool hayResultados = false;
         MostrarEncabezadoResultados();
 
         for (int i = 0; i < titulos.Count; i++)
         {
-            if (categorias[i].Trim().ToLower().Contains(categoria))
+            string categoriaTarea = categorias[i].Trim();
+            bool coincide = coincidenciaExacta
+                ? string.Equals(categoriaTarea, categoria, StringComparison.OrdinalIgnoreCase)
+                : categoriaTarea.ToLower().Contains(categoria.ToLower());
+
+            if (coincide)
             {
                 MostrarFilaResultado(i);
                 hayResultados = true;
