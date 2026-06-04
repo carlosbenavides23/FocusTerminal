@@ -57,11 +57,7 @@ Al iniciar, el programa intenta cargar primero tareas.txt. Si no existe, intenta
 
 - C#
 - .NET
-- Aplicacion de consola
-- Archivos de texto
-- StreamWriter
-- StreamReader
-- Git y GitHub
+- Visual Studio 2026
 
 ## Estructura del proyecto
 
