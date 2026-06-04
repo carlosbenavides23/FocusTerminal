@@ -9,3 +9,4 @@ obj/
 
 # Logs
 *.log
+/src/FocusTerminal/Properties/PublishProfiles/FolderProfile.pubxml
