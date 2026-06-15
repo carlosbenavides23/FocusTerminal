@@ -41,7 +41,7 @@ class Program
             switch (opcion)
             {
                 case 1:
-                    MostrarDashboard();
+                    ConsultarTareas();
                     break;
                 case 2:
                     AgregarTarea();
@@ -50,15 +50,12 @@ class Program
                     EditarTarea();
                     break;
                 case 4:
-                    CambiarEstado();
-                    break;
-                case 5:
                     EliminarTarea();
                     break;
-                case 6:
+                case 5:
                     FiltrarTareas();
                     break;
-                case 7:
+                case 6:
                     MostrarReporte();
                     break;
                 case 0:
@@ -66,7 +63,7 @@ class Program
                     Console.WriteLine("Saliendo del programa...");
                     break;
                 default:
-                    Console.WriteLine("Opción no válida");
+                    Console.WriteLine("Opcion no valida.");
                     PausarPantalla();
                     break;
             }
@@ -80,60 +77,377 @@ class Program
 
     static void MostrarMenuPrincipal()
     {
-        Console.Clear();
-        Console.WriteLine("=======================================");
-        Console.WriteLine("           FOCUSTERMINAL");
-        Console.WriteLine("=======================================");
-        Console.WriteLine("1. Mostrar dashboard simple");
-        Console.WriteLine("2. Agregar tarea");
-        Console.WriteLine("3. Editar tarea");
-        Console.WriteLine("4. Cambiar estado");
-        Console.WriteLine("5. Eliminar tarea");
-        Console.WriteLine("6. Filtrar tareas");
-        Console.WriteLine("7. Mostrar reporte");
-        Console.WriteLine("0. Salir");
-        Console.WriteLine("=======================================");
-    }
+        LimpiarPantalla();
 
-    static void MostrarDashboard()
-    {
-        Console.Clear();
-        Console.WriteLine("=======================================");
-        Console.WriteLine("        DASHBOARD DE TAREAS");
-        Console.WriteLine("=======================================");
+        MostrarEncabezadoPrincipal();
         Console.WriteLine();
 
         if (titulos.Count == 0)
         {
-            Console.WriteLine("No hay tareas registradas");
-            PausarPantalla();
-            return;
+            MostrarCajaSinTareas("VISTA RAPIDA");
+        }
+        else
+        {
+            MostrarTablaDashboard(5);
+
+            if (titulos.Count > 5)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Mostrando 5 de " + titulos.Count + " tareas registradas.");
+                Console.WriteLine("Use [1] Consultar tareas para ver el listado completo.");
+            }
+        }
+        Console.WriteLine();
+
+        MostrarResumenDashboard();
+        Console.WriteLine();
+
+        MostrarPanelAcciones();
+        Console.WriteLine();
+    }
+
+    static void ConsultarTareas()
+    {
+        LimpiarPantalla();
+
+        MostrarEncabezadoDoble("CONSULTAR TAREAS");
+        Console.WriteLine();
+
+        if (titulos.Count == 0)
+        {
+            MostrarCajaSinTareas("TAREAS REGISTRADAS");
+        }
+        else
+        {
+            MostrarTablaDashboard(0);
         }
 
-        Console.WriteLine(
-            "No.".PadRight(5) +
-            "Titulo".PadRight(25) +
-            "Prioridad".PadRight(12) +
-            "Fecha".PadRight(14) +
-            "Estado".PadRight(15) +
-            "Categoria".PadRight(20) +
-            "Descripcion".PadRight(30));
+        Console.WriteLine();
+        PausarPantalla();
+    }
 
-        Console.WriteLine(new string('-', 121));
+    // =======================================
+    // FUNCIONES AUXILIARES DEL DASHBOARD
+    // =======================================
+
+    static void MostrarEncabezadoPrincipal()
+    {
+        int anchoInterior = 78;
+        string titulo = "FOCUSTERMINAL";
+        string subtitulo = "Gestor academico de tareas";
+
+        Console.WriteLine("\u2554" + new string('\u2550', anchoInterior) + "\u2557");
+        Console.WriteLine("\u2551" + CentrarTexto(titulo, anchoInterior) + "\u2551");
+        Console.WriteLine("\u2551" + CentrarTexto(subtitulo, anchoInterior) + "\u2551");
+        Console.WriteLine("\u255A" + new string('\u2550', anchoInterior) + "\u255D");
+    }
+
+    static void MostrarResumenDashboard()
+    {
+        int pendientes = 0;
+        int enProgreso = 0;
+        int completadas = 0;
 
         for (int i = 0; i < titulos.Count; i++)
         {
-            Console.WriteLine(
-                (i + 1).ToString().PadRight(5) +
-                FormatearColumna(titulos[i], 25) +
-                prioridades[i].PadRight(12) +
-                fechasLimite[i].PadRight(14) +
-                estados[i].PadRight(15) +
-                FormatearColumna(categorias[i], 20) +
-                FormatearColumna(descripciones[i], 30));
+            if (estados[i] == "Pendiente")
+            {
+                pendientes++;
+            }
+            else if (estados[i] == "En progreso")
+            {
+                enProgreso++;
+            }
+            else if (estados[i] == "Completada")
+            {
+                completadas++;
+            }
         }
 
-        PausarPantalla();
+        int anchoInterior = 78;
+        string etiqueta = " RESUMEN ";
+        string contenido = " Total: " + titulos.Count
+            + "        Pendientes: " + pendientes
+            + "        En progreso: " + enProgreso
+            + "        Completadas: " + completadas;
+
+        int espacioTotal = anchoInterior - etiqueta.Length;
+        int izquierda = espacioTotal / 2;
+        int derecha = espacioTotal - izquierda;
+        Console.WriteLine("\u250C" + new string('\u2500', izquierda) + etiqueta + new string('\u2500', derecha) + "\u2510");
+
+        if (contenido.Length > anchoInterior)
+        {
+            contenido = contenido.Substring(0, anchoInterior);
+        }
+
+        Console.WriteLine("\u2502" + contenido.PadRight(anchoInterior) + "\u2502");
+        Console.WriteLine("\u2514" + new string('\u2500', anchoInterior) + "\u2518");
+    }
+
+    static void MostrarTablaDashboard(int limite)
+    {
+        List<int> indices = new List<int>();
+        int totalMostrar = titulos.Count;
+
+        if (limite > 0 && totalMostrar > limite)
+        {
+            totalMostrar = limite;
+        }
+
+        for (int i = 0; i < totalMostrar; i++)
+        {
+            indices.Add(i);
+        }
+
+        string titulo = limite > 0 ? "VISTA RAPIDA" : "TAREAS REGISTRADAS";
+        MostrarTablaTareas(indices, titulo);
+    }
+
+    static void MostrarTablaTareas(List<int> indices, string titulo)
+    {
+        int anchoNo = 4;
+        int anchoTitulo = 18;
+        int anchoPrioridad = 10;
+        int anchoEstado = 12;
+        int anchoDescripcion = 20;
+        int anchoFecha = 10;
+        int anchoInterior = (anchoNo + 2) + (anchoTitulo + 2)
+            + (anchoPrioridad + 2) + (anchoEstado + 2)
+            + (anchoDescripcion + 2) + (anchoFecha + 2) + 5;
+
+        string etiqueta = " " + titulo + " ";
+        int espacioEtiqueta = anchoInterior - etiqueta.Length;
+        int etiquetaIzq = espacioEtiqueta / 2;
+        int etiquetaDer = espacioEtiqueta - etiquetaIzq;
+
+        Console.WriteLine("\u250C" + new string('\u2500', etiquetaIzq) + etiqueta + new string('\u2500', etiquetaDer) + "\u2510");
+
+        string encabezado = "\u2502"
+            + " " + AjustarTexto("No.", anchoNo) + " "
+            + "\u2502" + " " + AjustarTexto("Titulo", anchoTitulo) + " "
+            + "\u2502" + " " + AjustarTexto("Prioridad", anchoPrioridad) + " "
+            + "\u2502" + " " + AjustarTexto("Estado", anchoEstado) + " "
+            + "\u2502" + " " + AjustarTexto("Descripcion", anchoDescripcion) + " "
+            + "\u2502" + " " + AjustarTexto("Fecha", anchoFecha) + " "
+            + "\u2502";
+        Console.WriteLine(encabezado);
+
+        Console.WriteLine("\u251C"
+            + new string('\u2500', anchoNo + 2) + "\u253C"
+            + new string('\u2500', anchoTitulo + 2) + "\u253C"
+            + new string('\u2500', anchoPrioridad + 2) + "\u253C"
+            + new string('\u2500', anchoEstado + 2) + "\u253C"
+            + new string('\u2500', anchoDescripcion + 2) + "\u253C"
+            + new string('\u2500', anchoFecha + 2)
+            + "\u2524");
+
+        for (int i = 0; i < indices.Count; i++)
+        {
+            int indice = indices[i];
+
+            Console.Write("\u2502"
+                + " " + AjustarTexto((indice + 1).ToString(), anchoNo) + " "
+                + "\u2502" + " " + AjustarTexto(titulos[indice], anchoTitulo) + " "
+                + "\u2502" + " ");
+
+            EscribirPrioridadConColor(prioridades[indice], anchoPrioridad);
+
+            Console.WriteLine(" "
+                + "\u2502" + " " + AjustarTexto(estados[indice], anchoEstado) + " "
+                + "\u2502" + " " + AjustarTexto(descripciones[indice], anchoDescripcion) + " "
+                + "\u2502" + " " + AjustarTexto(fechasLimite[indice], anchoFecha) + " "
+                + "\u2502");
+        }
+
+        Console.WriteLine("\u2514"
+            + new string('\u2500', anchoNo + 2) + "\u2534"
+            + new string('\u2500', anchoTitulo + 2) + "\u2534"
+            + new string('\u2500', anchoPrioridad + 2) + "\u2534"
+            + new string('\u2500', anchoEstado + 2) + "\u2534"
+            + new string('\u2500', anchoDescripcion + 2) + "\u2534"
+            + new string('\u2500', anchoFecha + 2)
+            + "\u2518");
+    }
+
+    static void MostrarCajaSinTareas(string titulo)
+    {
+        int anchoInterior = 78;
+        string etiqueta = " " + titulo + " ";
+        int espacioEtiqueta = anchoInterior - etiqueta.Length;
+        int etiquetaIzq = espacioEtiqueta / 2;
+        int etiquetaDer = espacioEtiqueta - etiquetaIzq;
+
+        string mensaje = " No hay tareas registradas.";
+
+        Console.WriteLine("\u250C" + new string('\u2500', etiquetaIzq) + etiqueta + new string('\u2500', etiquetaDer) + "\u2510");
+        Console.WriteLine("\u2502" + mensaje.PadRight(anchoInterior) + "\u2502");
+        Console.WriteLine("\u2514" + new string('\u2500', anchoInterior) + "\u2518");
+    }
+
+    static void MostrarPanelAcciones()
+    {
+        int anchoInterior = 78;
+        string etiqueta = " ACCIONES ";
+        int espacioEtiqueta = anchoInterior - etiqueta.Length;
+        int etiquetaIzq = espacioEtiqueta / 2;
+        int etiquetaDer = espacioEtiqueta - etiquetaIzq;
+
+        Console.WriteLine("\u250C" + new string('\u2500', etiquetaIzq) + etiqueta + new string('\u2500', etiquetaDer) + "\u2510");
+        MostrarFilaAcciones("[1] Consultar tareas", "[2] Agregar tarea", "[3] Editar tarea");
+        MostrarFilaAcciones("[4] Eliminar tarea", "[5] Filtrar tareas", "[6] Mostrar reporte");
+        MostrarFilaAcciones("[0] Guardar y salir", "", "");
+        Console.WriteLine("\u2514" + new string('\u2500', anchoInterior) + "\u2518");
+    }
+
+    static void MostrarFilaAcciones(string accion1, string accion2, string accion3)
+    {
+        Console.WriteLine("\u2502 "
+            + accion1.PadRight(25)
+            + accion2.PadRight(25)
+            + accion3.PadRight(26)
+            + " \u2502");
+    }
+
+    static void EscribirPrioridadConColor(string prioridad, int ancho)
+    {
+        ConsoleColor colorOriginal = Console.ForegroundColor;
+
+        try
+        {
+            if (prioridad == "ALTA")
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+            }
+            else if (prioridad == "MEDIA")
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+            }
+            else if (prioridad == "BAJA")
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+            }
+
+            Console.Write(AjustarTexto(prioridad, ancho));
+        }
+        finally
+        {
+            Console.ForegroundColor = colorOriginal;
+        }
+    }
+
+    // =======================================
+    // FUNCIONES AUXILIARES VISUALES GENERALES
+    // =======================================
+
+    static void MostrarEncabezadoDoble(string titulo)
+    {
+        int anchoInterior = 60;
+
+        Console.WriteLine("\u2554" + new string('\u2550', anchoInterior) + "\u2557");
+        Console.WriteLine("\u2551" + CentrarTexto(titulo, anchoInterior) + "\u2551");
+        Console.WriteLine("\u255A" + new string('\u2550', anchoInterior) + "\u255D");
+    }
+
+    static void MostrarEncabezadoSeccion(string titulo)
+    {
+        int anchoInterior = 60;
+        string etiqueta = " " + titulo + " ";
+        int espacioEtiqueta = anchoInterior - etiqueta.Length;
+        int etiquetaIzq = espacioEtiqueta / 2;
+        int etiquetaDer = espacioEtiqueta - etiquetaIzq;
+
+        Console.WriteLine("\u250C" + new string('\u2500', etiquetaIzq) + etiqueta + new string('\u2500', etiquetaDer) + "\u2510");
+    }
+
+    static void MostrarLineaCaja(string contenido)
+    {
+        int anchoInterior = 60;
+        string linea = " " + contenido;
+
+        if (linea.Length > anchoInterior)
+        {
+            linea = linea.Substring(0, anchoInterior);
+        }
+
+        Console.WriteLine("\u2502" + linea.PadRight(anchoInterior) + "\u2502");
+    }
+
+    static void MostrarCierreCaja()
+    {
+        int anchoInterior = 60;
+        Console.WriteLine("\u2514" + new string('\u2500', anchoInterior) + "\u2518");
+    }
+
+    static void MostrarMensajeExito(string mensaje)
+    {
+        int anchoInterior = 60;
+        string contenido = " [OK] " + mensaje;
+
+        if (contenido.Length > anchoInterior)
+        {
+            contenido = contenido.Substring(0, anchoInterior);
+        }
+
+        Console.WriteLine("\u250C" + new string('\u2500', anchoInterior) + "\u2510");
+        Console.WriteLine("\u2502" + contenido.PadRight(anchoInterior) + "\u2502");
+        Console.WriteLine("\u2514" + new string('\u2500', anchoInterior) + "\u2518");
+    }
+
+    static void MostrarMensajeError(string mensaje)
+    {
+        int anchoInterior = 60;
+        string contenido = " [ERROR] " + mensaje;
+
+        if (contenido.Length > anchoInterior)
+        {
+            contenido = contenido.Substring(0, anchoInterior);
+        }
+
+        Console.WriteLine("\u250C" + new string('\u2500', anchoInterior) + "\u2510");
+        Console.WriteLine("\u2502" + contenido.PadRight(anchoInterior) + "\u2502");
+        Console.WriteLine("\u2514" + new string('\u2500', anchoInterior) + "\u2518");
+    }
+
+    static void MostrarMensajeAdvertencia(string mensaje)
+    {
+        int anchoInterior = 60;
+        string contenido = " [!] " + mensaje;
+
+        if (contenido.Length > anchoInterior)
+        {
+            contenido = contenido.Substring(0, anchoInterior);
+        }
+
+        Console.WriteLine("\u250C" + new string('\u2500', anchoInterior) + "\u2510");
+        Console.WriteLine("\u2502" + contenido.PadRight(anchoInterior) + "\u2502");
+        Console.WriteLine("\u2514" + new string('\u2500', anchoInterior) + "\u2518");
+    }
+
+    static string CentrarTexto(string texto, int ancho)
+    {
+        if (texto.Length >= ancho)
+        {
+            return texto.Substring(0, ancho);
+        }
+
+        int espacioTotal = ancho - texto.Length;
+        int izquierda = espacioTotal / 2;
+        int derecha = espacioTotal - izquierda;
+
+        return new string(' ', izquierda) + texto + new string(' ', derecha);
+    }
+
+    static string AjustarTexto(string texto, int ancho)
+    {
+        texto = texto.Trim();
+
+        if (texto.Length > ancho)
+        {
+            return texto.Substring(0, ancho - 3) + "...";
+        }
+
+        return texto.PadRight(ancho);
     }
 
     static void PausarPantalla()
@@ -141,6 +455,18 @@ class Program
         Console.WriteLine();
         Console.WriteLine("Presione Enter para volver al menu principal...");
         Console.ReadLine();
+    }
+
+    static void LimpiarPantalla()
+    {
+        try
+        {
+            Console.Clear();
+        }
+        catch
+        {
+            Console.WriteLine();
+        }
     }
 
     static string FormatearColumna(string texto, int ancho)
@@ -161,10 +487,9 @@ class Program
 
     static void AgregarTarea()
     {
-        Console.Clear();
-        Console.WriteLine("=======================================");
-        Console.WriteLine("            AGREGAR TAREA");
-        Console.WriteLine("=======================================");
+        LimpiarPantalla();
+
+        MostrarEncabezadoDoble("AGREGAR TAREA");
         Console.WriteLine();
 
         string titulo;
@@ -176,12 +501,13 @@ class Program
 
         do
         {
-            Console.Write("Titulo: ");
+            Console.WriteLine("Titulo:");
+            Console.Write("> ");
             titulo = Console.ReadLine() ?? "";
 
             if (!ValidarTitulo(titulo))
             {
-                Console.WriteLine("El titulo no puede estar vacio.");
+                MostrarMensajeError("El titulo no puede estar vacio.");
             }
         }
         while (!ValidarTitulo(titulo));
@@ -192,14 +518,14 @@ class Program
 
             if (prioridad == "")
             {
-                Console.WriteLine("Opcion no valida.");
+                MostrarMensajeError("Opcion no valida.");
             }
         }
         while (prioridad == "");
 
         if (prioridad == "0")
         {
-            Console.WriteLine("Operacion cancelada.");
+            MostrarMensajeAdvertencia("Operacion cancelada.");
             PausarPantalla();
             return;
         }
@@ -211,7 +537,7 @@ class Program
 
             if (!ValidarFecha(fechaLimite))
             {
-                Console.WriteLine("La fecha debe tener el formato dd/MM/yyyy o ser --.");
+                MostrarMensajeError("La fecha debe tener formato dd/MM/yyyy o ser --.");
             }
         }
         while (!ValidarFecha(fechaLimite));
@@ -224,14 +550,14 @@ class Program
 
             if (estado == "")
             {
-                Console.WriteLine("Opcion no valida.");
+                MostrarMensajeError("Opcion no valida.");
             }
         }
         while (estado == "");
 
         if (estado == "0")
         {
-            Console.WriteLine("Operacion cancelada.");
+            MostrarMensajeAdvertencia("Operacion cancelada.");
             PausarPantalla();
             return;
         }
@@ -242,14 +568,14 @@ class Program
 
             if (categoria == "")
             {
-                Console.WriteLine("Opcion no valida.");
+                MostrarMensajeError("Opcion no valida.");
             }
         }
         while (categoria == "");
 
         if (categoria == "CANCELAR")
         {
-            Console.WriteLine("Operacion cancelada.");
+            MostrarMensajeAdvertencia("Operacion cancelada.");
             PausarPantalla();
             return;
         }
@@ -265,7 +591,7 @@ class Program
         descripciones.Add(LimpiarSeparador(descripcion.Trim()));
 
         Console.WriteLine();
-        Console.WriteLine("Tarea agregada correctamente");
+        MostrarMensajeExito("Tarea agregada correctamente.");
         PausarPantalla();
     }
 
@@ -388,20 +714,19 @@ class Program
 
     static void EditarTarea()
     {
-        Console.Clear();
-        Console.WriteLine("=======================================");
-        Console.WriteLine("            EDITAR TAREA");
-        Console.WriteLine("=======================================");
+        LimpiarPantalla();
+
+        MostrarEncabezadoDoble("EDITAR TAREA");
         Console.WriteLine();
 
         if (titulos.Count == 0)
         {
-            Console.WriteLine("No hay tareas registradas");
+            MostrarCajaSinTareas("EDITAR TAREA");
             PausarPantalla();
             return;
         }
 
-        MostrarListaParaEditar();
+        MostrarTablaDashboard(0);
 
         int indice = LeerIndiceTarea("Ingrese el numero de la tarea a editar: ");
 
@@ -417,14 +742,15 @@ class Program
         }
 
         Console.WriteLine();
-        Console.WriteLine("Campo a editar:");
-        Console.WriteLine("1. Titulo");
-        Console.WriteLine("2. Prioridad");
-        Console.WriteLine("3. Fecha limite");
-        Console.WriteLine("4. Estado");
-        Console.WriteLine("5. Categoria");
-        Console.WriteLine("6. Descripcion");
-        Console.WriteLine("0. Volver al menu principal");
+        MostrarEncabezadoSeccion("CAMPO A EDITAR");
+        MostrarLineaCaja("[1] Titulo");
+        MostrarLineaCaja("[2] Prioridad");
+        MostrarLineaCaja("[3] Estado");
+        MostrarLineaCaja("[4] Categoria");
+        MostrarLineaCaja("[5] Descripcion");
+        MostrarLineaCaja("[6] Fecha limite");
+        MostrarLineaCaja("[0] Volver");
+        MostrarCierreCaja();
 
         int opcion = LeerOpcionEntera("Seleccione una opcion: ");
         bool modificado = false;
@@ -438,100 +764,49 @@ class Program
                 modificado = EditarPrioridad(indice);
                 break;
             case 3:
-                modificado = EditarFechaLimite(indice);
-                break;
-            case 4:
                 modificado = EditarEstado(indice);
                 break;
-            case 5:
+            case 4:
                 modificado = EditarCategoria(indice);
                 break;
-            case 6:
+            case 5:
                 modificado = EditarDescripcion(indice);
                 break;
+            case 6:
+                modificado = EditarFechaLimite(indice);
+                break;
             case 0:
+                MostrarMensajeAdvertencia("Operacion cancelada.");
+                PausarPantalla();
                 return;
             default:
-                Console.WriteLine("Opcion no valida.");
+                MostrarMensajeError("Opcion no valida.");
                 break;
         }
 
         if (modificado)
         {
-            Console.WriteLine("Tarea editada correctamente.");
+            MostrarMensajeExito("Tarea editada correctamente.");
         }
 
-        PausarPantalla();
-    }
-
-    static void CambiarEstado()
-    {
-        Console.Clear();
-        Console.WriteLine("=======================================");
-        Console.WriteLine("          CAMBIAR ESTADO");
-        Console.WriteLine("=======================================");
-        Console.WriteLine();
-
-        if (titulos.Count == 0)
-        {
-            Console.WriteLine("No hay tareas registradas");
-            PausarPantalla();
-            return;
-        }
-
-        MostrarListaParaEstado();
-
-        int indice = LeerIndiceTarea("Ingrese el numero de la tarea: ");
-
-        if (indice == -2)
-        {
-            return;
-        }
-
-        if (indice == -1)
-        {
-            PausarPantalla();
-            return;
-        }
-
-        string nuevoEstado = SeleccionarEstado();
-
-        if (nuevoEstado == "0")
-        {
-            Console.WriteLine("Operacion cancelada.");
-            PausarPantalla();
-            return;
-        }
-
-        if (nuevoEstado == "")
-        {
-            Console.WriteLine("Opcion no valida.");
-            PausarPantalla();
-            return;
-        }
-
-        estados[indice] = nuevoEstado;
-
-        Console.WriteLine("Estado actualizado correctamente.");
         PausarPantalla();
     }
 
     static void EliminarTarea()
     {
-        Console.Clear();
-        Console.WriteLine("=======================================");
-        Console.WriteLine("           ELIMINAR TAREA");
-        Console.WriteLine("=======================================");
+        LimpiarPantalla();
+
+        MostrarEncabezadoDoble("ELIMINAR TAREA");
         Console.WriteLine();
 
         if (titulos.Count == 0)
         {
-            Console.WriteLine("No hay tareas registradas");
+            MostrarCajaSinTareas("ELIMINAR TAREA");
             PausarPantalla();
             return;
         }
 
-        MostrarListaParaEliminar();
+        MostrarTablaDashboard(0);
 
         int indice = LeerIndiceTarea("Ingrese el numero de la tarea a eliminar: ");
 
@@ -546,13 +821,20 @@ class Program
             return;
         }
 
-        Console.WriteLine("0. Volver al menu principal");
-        Console.Write("Esta seguro de eliminar esta tarea? (S/N): ");
+        Console.WriteLine();
+        MostrarEncabezadoSeccion("CONFIRMAR ELIMINACION");
+        MostrarLineaCaja("S: Confirmar");
+        MostrarLineaCaja("N: Cancelar");
+        MostrarLineaCaja("0: Volver");
+        MostrarCierreCaja();
+        Console.Write("Seleccione una opcion: ");
         string confirmacion = Console.ReadLine() ?? "";
         confirmacion = confirmacion.Trim().ToUpper();
 
         if (confirmacion == "0")
         {
+            MostrarMensajeAdvertencia("Operacion cancelada.");
+            PausarPantalla();
             return;
         }
 
@@ -565,82 +847,18 @@ class Program
             categorias.RemoveAt(indice);
             descripciones.RemoveAt(indice);
 
-            Console.WriteLine("Tarea eliminada correctamente.");
+            MostrarMensajeExito("Tarea eliminada correctamente.");
+        }
+        else if (confirmacion == "N")
+        {
+            MostrarMensajeAdvertencia("Operacion cancelada.");
         }
         else
         {
-            Console.WriteLine("Operacion cancelada.");
+            MostrarMensajeError("Opcion no valida.");
         }
 
         PausarPantalla();
-    }
-
-    static void MostrarListaParaEstado()
-    {
-        Console.WriteLine(
-            "No.".PadRight(5) +
-            "Titulo".PadRight(30) +
-            "Estado".PadRight(15) +
-            "Descripcion".PadRight(30));
-
-        Console.WriteLine(new string('-', 80));
-
-        for (int i = 0; i < titulos.Count; i++)
-        {
-            Console.WriteLine(
-                (i + 1).ToString().PadRight(5) +
-                FormatearColumna(titulos[i], 30) +
-                estados[i].PadRight(15) +
-                FormatearColumna(descripciones[i], 30));
-        }
-    }
-
-    static void MostrarListaParaEliminar()
-    {
-        Console.WriteLine(
-            "No.".PadRight(5) +
-            "Titulo".PadRight(30) +
-            "Prioridad".PadRight(12) +
-            "Estado".PadRight(15) +
-            "Descripcion".PadRight(30));
-
-        Console.WriteLine(new string('-', 92));
-
-        for (int i = 0; i < titulos.Count; i++)
-        {
-            Console.WriteLine(
-                (i + 1).ToString().PadRight(5) +
-                FormatearColumna(titulos[i], 30) +
-                prioridades[i].PadRight(12) +
-                estados[i].PadRight(15) +
-                FormatearColumna(descripciones[i], 30));
-        }
-    }
-
-    static void MostrarListaParaEditar()
-    {
-        Console.WriteLine(
-            "No.".PadRight(5) +
-            "Titulo".PadRight(25) +
-            "Prioridad".PadRight(12) +
-            "Fecha".PadRight(14) +
-            "Estado".PadRight(15) +
-            "Categoria".PadRight(20) +
-            "Descripcion".PadRight(30));
-
-        Console.WriteLine(new string('-', 121));
-
-        for (int i = 0; i < titulos.Count; i++)
-        {
-            Console.WriteLine(
-                (i + 1).ToString().PadRight(5) +
-                FormatearColumna(titulos[i], 25) +
-                prioridades[i].PadRight(12) +
-                fechasLimite[i].PadRight(14) +
-                estados[i].PadRight(15) +
-                FormatearColumna(categorias[i], 20) +
-                FormatearColumna(descripciones[i], 30));
-        }
     }
 
     static int LeerIndiceTarea(string mensaje)
@@ -785,26 +1003,27 @@ class Program
 
     static void FiltrarTareas()
     {
-        Console.Clear();
-        Console.WriteLine("=======================================");
-        Console.WriteLine("           FILTRAR TAREAS");
-        Console.WriteLine("=======================================");
+        LimpiarPantalla();
+
+        MostrarEncabezadoDoble("FILTRAR TAREAS");
         Console.WriteLine();
 
         if (titulos.Count == 0)
         {
-            Console.WriteLine("No hay tareas registradas");
+            MostrarCajaSinTareas("FILTRAR TAREAS");
             PausarPantalla();
             return;
         }
 
-        Console.WriteLine("1. Filtrar por prioridad");
-        Console.WriteLine("2. Filtrar por estado");
-        Console.WriteLine("3. Filtrar por categoria");
-        Console.WriteLine("0. Volver al menu principal");
+        MostrarEncabezadoSeccion("TIPO DE FILTRO");
+        MostrarLineaCaja("[1] Por prioridad");
+        MostrarLineaCaja("[2] Por estado");
+        MostrarLineaCaja("[3] Por categoria");
+        MostrarLineaCaja("[4] Por fecha limite");
+        MostrarLineaCaja("[0] Volver");
+        MostrarCierreCaja();
 
         int opcion = LeerOpcionEntera("Seleccione una opcion: ");
-        Console.WriteLine();
 
         switch (opcion)
         {
@@ -817,10 +1036,13 @@ class Program
             case 3:
                 FiltrarPorCategoria();
                 break;
+            case 4:
+                FiltrarPorFecha();
+                break;
             case 0:
                 return;
             default:
-                Console.WriteLine("Opcion no valida.");
+                MostrarMensajeError("Opcion no valida.");
                 break;
         }
 
@@ -829,10 +1051,9 @@ class Program
 
     static void MostrarReporte()
     {
-        Console.Clear();
-        Console.WriteLine("=======================================");
-        Console.WriteLine("          REPORTE DE TAREAS");
-        Console.WriteLine("=======================================");
+        LimpiarPantalla();
+
+        MostrarEncabezadoDoble("REPORTE");
         Console.WriteLine();
 
         int pendientes = 0;
@@ -871,30 +1092,46 @@ class Program
             }
         }
 
-        Console.WriteLine("Total de tareas: " + titulos.Count);
-        Console.WriteLine("Tareas Pendientes: " + pendientes);
-        Console.WriteLine("Tareas En progreso: " + enProgreso);
-        Console.WriteLine("Tareas Completadas: " + completadas);
-        Console.WriteLine("Tareas con prioridad ALTA: " + prioridadAlta);
-        Console.WriteLine("Tareas con prioridad MEDIA: " + prioridadMedia);
-        Console.WriteLine("Tareas con prioridad BAJA: " + prioridadBaja);
+        // Caja: Resumen general
+        MostrarEncabezadoSeccion("RESUMEN GENERAL");
+        MostrarLineaCaja("Total de tareas: " + titulos.Count);
+        MostrarCierreCaja();
+        Console.WriteLine();
+
+        // Caja: Por estado
+        MostrarEncabezadoSeccion("POR ESTADO");
+        MostrarLineaCaja("Pendientes:     " + pendientes);
+        MostrarLineaCaja("En progreso:    " + enProgreso);
+        MostrarLineaCaja("Completadas:    " + completadas);
+        MostrarCierreCaja();
+        Console.WriteLine();
+
+        // Caja: Por prioridad
+        MostrarEncabezadoSeccion("POR PRIORIDAD");
+        MostrarLineaCaja("ALTA:           " + prioridadAlta);
+        MostrarLineaCaja("MEDIA:          " + prioridadMedia);
+        MostrarLineaCaja("BAJA:           " + prioridadBaja);
+        MostrarCierreCaja();
 
         PausarPantalla();
     }
 
     static void FiltrarPorPrioridad()
     {
+        LimpiarPantalla();
+        MostrarEncabezadoDoble("FILTRAR POR PRIORIDAD");
+
         string prioridad = SeleccionarPrioridad();
 
         if (prioridad == "0")
         {
-            Console.WriteLine("Operacion cancelada.");
+            MostrarMensajeAdvertencia("Operacion cancelada.");
             return;
         }
 
         if (prioridad == "")
         {
-            Console.WriteLine("Opcion no valida.");
+            MostrarMensajeError("Opcion no valida.");
             return;
         }
 
@@ -903,17 +1140,20 @@ class Program
 
     static void FiltrarPorEstado()
     {
+        LimpiarPantalla();
+        MostrarEncabezadoDoble("FILTRAR POR ESTADO");
+
         string estado = SeleccionarEstado();
 
         if (estado == "0")
         {
-            Console.WriteLine("Operacion cancelada.");
+            MostrarMensajeAdvertencia("Operacion cancelada.");
             return;
         }
 
         if (estado == "")
         {
-            Console.WriteLine("Opcion no valida.");
+            MostrarMensajeError("Opcion no valida.");
             return;
         }
 
@@ -922,30 +1162,35 @@ class Program
 
     static void FiltrarPorCategoria()
     {
+        LimpiarPantalla();
+        MostrarEncabezadoDoble("FILTRAR POR CATEGORIA");
+        Console.WriteLine();
+
         List<string> categoriasExistentes = ObtenerCategoriasExistentes();
 
         if (categoriasExistentes.Count == 0)
         {
-            Console.WriteLine("No hay categorias registradas.");
+            MostrarMensajeAdvertencia("No hay categorias registradas.");
             return;
         }
 
-        Console.WriteLine("Categorias disponibles:");
+        MostrarEncabezadoSeccion("CATEGORIAS DISPONIBLES");
 
         for (int i = 0; i < categoriasExistentes.Count; i++)
         {
-            Console.WriteLine((i + 1) + ". " + categoriasExistentes[i]);
+            MostrarLineaCaja("[" + (i + 1) + "] " + categoriasExistentes[i]);
         }
 
-        Console.WriteLine("M. Busqueda manual");
-        Console.WriteLine("0. Volver al menu principal");
+        MostrarLineaCaja("[M] Busqueda manual");
+        MostrarLineaCaja("[0] Volver");
+        MostrarCierreCaja();
         Console.Write("Seleccione una opcion: ");
 
         string entrada = (Console.ReadLine() ?? "").Trim();
 
         if (entrada == "0")
         {
-            Console.WriteLine("Operacion cancelada.");
+            MostrarMensajeAdvertencia("Operacion cancelada.");
             return;
         }
 
@@ -956,7 +1201,7 @@ class Program
 
             if (string.IsNullOrWhiteSpace(busqueda))
             {
-                Console.WriteLine("Debe ingresar una categoria para filtrar.");
+                MostrarMensajeError("Debe ingresar una categoria para filtrar.");
                 return;
             }
 
@@ -970,11 +1215,54 @@ class Program
             opcion < 1 ||
             opcion > categoriasExistentes.Count)
         {
-            Console.WriteLine("Opcion no valida.");
+            MostrarMensajeError("Opcion no valida.");
             return;
         }
 
         MostrarResultadosPorCategoria(categoriasExistentes[opcion - 1], true);
+    }
+
+    static void FiltrarPorFecha()
+    {
+        LimpiarPantalla();
+        MostrarEncabezadoDoble("FILTRAR POR FECHA");
+        Console.WriteLine();
+
+        MostrarEncabezadoSeccion("TIPO DE BUSQUEDA");
+        MostrarLineaCaja("[1] Fecha especifica");
+        MostrarLineaCaja("[2] Tareas sin fecha");
+        MostrarLineaCaja("[0] Volver");
+        MostrarCierreCaja();
+
+        int opcion = LeerOpcionEntera("Seleccione una opcion: ");
+
+        if (opcion == 0)
+        {
+            MostrarMensajeAdvertencia("Operacion cancelada.");
+            return;
+        }
+
+        if (opcion == 1)
+        {
+            Console.Write("Fecha limite (dd/MM/yyyy): ");
+            string fecha = (Console.ReadLine() ?? "").Trim();
+
+            if (fecha == "--" || !ValidarFecha(fecha))
+            {
+                MostrarMensajeError("La fecha debe tener el formato dd/MM/yyyy.");
+                return;
+            }
+
+            MostrarResultadosPorFecha(fecha);
+        }
+        else if (opcion == 2)
+        {
+            MostrarResultadosPorFecha("--");
+        }
+        else
+        {
+            MostrarMensajeError("Opcion no valida.");
+        }
     }
 
     static List<string> ObtenerCategoriasExistentes()
@@ -1013,76 +1301,39 @@ class Program
         return categoriasExistentes;
     }
 
-    static void MostrarEncabezadoResultados()
-    {
-        Console.WriteLine(
-            "No.".PadRight(5) +
-            "Titulo".PadRight(25) +
-            "Prioridad".PadRight(12) +
-            "Fecha".PadRight(14) +
-            "Estado".PadRight(15) +
-            "Categoria".PadRight(20) +
-            "Descripcion".PadRight(30));
-
-        Console.WriteLine(new string('-', 121));
-    }
-
-    static void MostrarFilaResultado(int indice)
-    {
-        Console.WriteLine(
-            (indice + 1).ToString().PadRight(5) +
-            FormatearColumna(titulos[indice], 25) +
-            prioridades[indice].PadRight(12) +
-            fechasLimite[indice].PadRight(14) +
-            estados[indice].PadRight(15) +
-            FormatearColumna(categorias[indice], 20) +
-            FormatearColumna(descripciones[indice], 30));
-    }
-
     static void MostrarResultadosPorPrioridad(string prioridad)
     {
-        bool hayResultados = false;
-        MostrarEncabezadoResultados();
+        List<int> resultados = new List<int>();
 
         for (int i = 0; i < titulos.Count; i++)
         {
             if (prioridades[i] == prioridad)
             {
-                MostrarFilaResultado(i);
-                hayResultados = true;
+                resultados.Add(i);
             }
         }
 
-        if (!hayResultados)
-        {
-            Console.WriteLine("No se encontraron tareas con ese filtro");
-        }
+        MostrarResultadosFiltro(resultados);
     }
 
     static void MostrarResultadosPorEstado(string estado)
     {
-        bool hayResultados = false;
-        MostrarEncabezadoResultados();
+        List<int> resultados = new List<int>();
 
         for (int i = 0; i < titulos.Count; i++)
         {
             if (estados[i] == estado)
             {
-                MostrarFilaResultado(i);
-                hayResultados = true;
+                resultados.Add(i);
             }
         }
 
-        if (!hayResultados)
-        {
-            Console.WriteLine("No se encontraron tareas con ese filtro");
-        }
+        MostrarResultadosFiltro(resultados);
     }
 
     static void MostrarResultadosPorCategoria(string categoria, bool coincidenciaExacta)
     {
-        bool hayResultados = false;
-        MostrarEncabezadoResultados();
+        List<int> resultados = new List<int>();
 
         for (int i = 0; i < titulos.Count; i++)
         {
@@ -1093,15 +1344,39 @@ class Program
 
             if (coincide)
             {
-                MostrarFilaResultado(i);
-                hayResultados = true;
+                resultados.Add(i);
             }
         }
 
-        if (!hayResultados)
+        MostrarResultadosFiltro(resultados);
+    }
+
+    static void MostrarResultadosPorFecha(string fecha)
+    {
+        List<int> resultados = new List<int>();
+
+        for (int i = 0; i < titulos.Count; i++)
         {
-            Console.WriteLine("No se encontraron tareas con ese filtro");
+            if (fechasLimite[i] == fecha)
+            {
+                resultados.Add(i);
+            }
         }
+
+        MostrarResultadosFiltro(resultados);
+    }
+
+    static void MostrarResultadosFiltro(List<int> resultados)
+    {
+        Console.WriteLine();
+
+        if (resultados.Count == 0)
+        {
+            MostrarMensajeAdvertencia("No se encontraron tareas con ese filtro.");
+            return;
+        }
+
+        MostrarTablaTareas(resultados, "RESULTADOS");
     }
 
     // =======================================
