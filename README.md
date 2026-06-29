@@ -1,34 +1,57 @@
 # FocusTerminal
 
-FocusTerminal es una aplicacion de consola desarrollada en C# para registrar, organizar y consultar tareas academicas mediante programacion estructurada y archivos de texto.
+FocusTerminal es una aplicacion de consola desarrollada en C# para registrar, organizar, consultar y dar seguimiento a tareas academicas mediante programacion estructurada, listas paralelas y archivos de texto.
 
 ## Objetivo
 
-Apoyar la organizacion academica de estudiantes universitarios mediante un gestor de tareas local, ligero y facil de usar desde la terminal.
+Apoyar la organizacion academica de estudiantes universitarios mediante un gestor de tareas local, ligero, claro y facil de usar desde la terminal.
 
 ## Estado actual
 
-Version actual de avance: v0.2.0.
+Version final de entrega: v1.0.
 
-El proyecto ya cuenta con gestion principal de tareas, persistencia local y mejoras de experiencia de usuario para reducir la escritura manual innecesaria.
+El proyecto cuenta con gestion completa de tareas, persistencia local, respaldo automatico, filtros, reportes, interfaz TUI en consola e instalador para Windows.
 
 ## Caracteristicas principales
 
 - Registro de tareas academicas con titulo, prioridad, fecha limite, estado, categoria y descripcion.
-- Dashboard simple con informacion principal de las tareas registradas.
-- Edicion de tareas existentes.
-- Cambio de estado de tareas.
-- Eliminacion de tareas.
-- Filtros por prioridad, estado y categoria.
-- Filtro por categoria usando categorias existentes o busqueda manual.
-- Reporte basico de tareas por estado y prioridad.
+- Pantalla principal con interfaz TUI, vista rapida de tareas, resumen general y acciones principales.
+- Consulta completa de tareas registradas.
+- Edicion de tareas existentes, incluyendo prioridad, estado, categoria, descripcion y fecha limite.
+- Eliminacion de tareas con confirmacion.
+- Filtros por prioridad, estado, categoria y fecha limite.
+- Busqueda manual por categoria.
+- Consulta de tareas sin fecha asignada.
+- Reporte general por estado y prioridad.
 - Guardado y carga de datos mediante archivo de texto.
-- Copia de respaldo con tareas_backup.txt.
+- Copia de respaldo automatica con tareas_backup.txt.
 - Recuperacion desde respaldo si falta tareas.txt.
+- Instalador para Windows generado con Inno Setup.
+- Version portable en archivo comprimido.
+
+## Interfaz de usuario
+
+FocusTerminal utiliza una interfaz TUI construida directamente en consola. La interfaz se organiza mediante encabezados, tablas, cajas y paneles de acciones.
+
+La pantalla principal muestra:
+
+- Vista rapida de tareas registradas.
+- Resumen general de tareas.
+- Acciones principales del sistema.
+
+La vista rapida muestra un maximo de 5 tareas para evitar saturar la pantalla. Para revisar el listado completo, el usuario puede usar la opcion Consultar tareas.
+
+La prioridad de las tareas se representa con colores:
+
+- ALTA: rojo.
+- MEDIA: amarillo.
+- BAJA: verde.
+
+El resto de la interfaz mantiene un estilo sobrio para priorizar la legibilidad.
 
 ## Mejoras de experiencia de usuario
 
-Para reducir la carga cognitiva del usuario, el programa utiliza menus numericos en lugar de exigir que el usuario recuerde nombres exactos.
+El programa busca reducir la carga cognitiva del usuario mediante menus numericos, pantallas limpias y mensajes claros.
 
 Actualmente se seleccionan por numero:
 
@@ -53,11 +76,13 @@ FocusTerminal guarda la informacion localmente usando archivos de texto.
 
 Al iniciar, el programa intenta cargar primero tareas.txt. Si no existe, intenta recuperar los datos desde tareas_backup.txt. Al salir, las tareas se guardan usando StreamWriter, y la carga se realiza usando StreamReader.
 
+Nota: tareas.txt y tareas_backup.txt son archivos generados durante la ejecucion del programa. No forman parte del codigo fuente principal del repositorio.
+
 ## Tecnologias utilizadas
 
 - C#
 - .NET
-- Visual Studio 2026
+- Visual Studio
 
 ## Estructura del proyecto
 
@@ -71,22 +96,3 @@ FocusTerminal/
     - Program.cs
 - .gitignore
 - README.md
-
-Nota: tareas.txt y tareas_backup.txt son archivos generados por la ejecucion del programa. No forman parte del codigo fuente principal del repositorio.
-
-## Ejecucion
-
-Desde la raiz del repositorio:
-
-dotnet run --project src\FocusTerminal\FocusTerminal.csproj
-
-Para compilar:
-
-dotnet build src\FocusTerminal\FocusTerminal.csproj
-
-## Proximas mejoras
-
-- Pruebas finales y correcciones.
-- Evaluar identificador unico por tarea.
-- Mejoras finales de presentacion visual en consola.
-- Preparacion de documentacion final y defensa del proyecto.
