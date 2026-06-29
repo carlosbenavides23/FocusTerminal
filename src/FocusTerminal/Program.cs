@@ -19,9 +19,11 @@ class Program
     static List<string> estados = new List<string>();
     static List<string> categorias = new List<string>();
     static List<string> descripciones = new List<string>();
+    static List<string> categoriasPersonalizadas = new List<string>();
 
     const string ArchivoTareas = "tareas.txt";
     const string ArchivoBackup = "tareas_backup.txt";
+    const string ArchivoCategorias = "categorias.txt";
 
     // =======================================
     // MAIN
@@ -32,6 +34,7 @@ class Program
         int opcion;
 
         CargarTareas();
+        CargarCategorias();
 
         do
         {
@@ -56,10 +59,14 @@ class Program
                     FiltrarTareas();
                     break;
                 case 6:
+                    GestionarCategorias();
+                    break;
+                case 7:
                     MostrarReporte();
                     break;
                 case 0:
                     GuardarTareas();
+                    GuardarCategorias();
                     Console.WriteLine("Saliendo del programa...");
                     break;
                 default:
@@ -93,7 +100,7 @@ class Program
             if (titulos.Count > 5)
             {
                 Console.WriteLine();
-                Console.WriteLine("Mostrando 5 de " + titulos.Count + " tareas registradas.");
+                Console.WriteLine("Mostrando las 5 tareas con fecha limite mas cercana.");
                 Console.WriteLine("Use [1] Consultar tareas para ver el listado completo.");
             }
         }
@@ -188,20 +195,87 @@ class Program
     static void MostrarTablaDashboard(int limite)
     {
         List<int> indices = new List<int>();
-        int totalMostrar = titulos.Count;
 
-        if (limite > 0 && totalMostrar > limite)
+        if (limite > 0)
         {
-            totalMostrar = limite;
+            indices = ObtenerIndicesPorFechaCercana(limite);
         }
-
-        for (int i = 0; i < totalMostrar; i++)
+        else
         {
-            indices.Add(i);
+            for (int i = 0; i < titulos.Count; i++)
+            {
+                indices.Add(i);
+            }
         }
 
         string titulo = limite > 0 ? "VISTA RAPIDA" : "TAREAS REGISTRADAS";
         MostrarTablaTareas(indices, titulo);
+    }
+
+    static List<int> ObtenerIndicesPorFechaCercana(int limite)
+    {
+        List<int> indices = new List<int>();
+
+        for (int i = 0; i < titulos.Count; i++)
+        {
+            indices.Add(i);
+        }
+
+        DateTime hoy = DateTime.Today;
+
+        indices.Sort(delegate (int indiceA, int indiceB)
+        {
+            DateTime fechaA;
+            DateTime fechaB;
+            bool tieneFechaA = TryObtenerFechaLimite(indiceA, out fechaA);
+            bool tieneFechaB = TryObtenerFechaLimite(indiceB, out fechaB);
+
+            if (tieneFechaA && !tieneFechaB)
+            {
+                return -1;
+            }
+            else if (!tieneFechaA && tieneFechaB)
+            {
+                return 1;
+            }
+            else if (tieneFechaA && tieneFechaB)
+            {
+                double distanciaA = Math.Abs((fechaA - hoy).TotalDays);
+                double distanciaB = Math.Abs((fechaB - hoy).TotalDays);
+                int comparacionDistancia = distanciaA.CompareTo(distanciaB);
+
+                if (comparacionDistancia != 0)
+                {
+                    return comparacionDistancia;
+                }
+
+                int comparacionFecha = fechaA.CompareTo(fechaB);
+
+                if (comparacionFecha != 0)
+                {
+                    return comparacionFecha;
+                }
+            }
+
+            return indiceA.CompareTo(indiceB);
+        });
+
+        if (indices.Count > limite)
+        {
+            indices.RemoveRange(limite, indices.Count - limite);
+        }
+
+        return indices;
+    }
+
+    static bool TryObtenerFechaLimite(int indice, out DateTime fecha)
+    {
+        return DateTime.TryParseExact(
+            fechasLimite[indice],
+            "dd/MM/yyyy",
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out fecha);
     }
 
     static void MostrarTablaTareas(List<int> indices, string titulo)
@@ -295,8 +369,8 @@ class Program
 
         Console.WriteLine("\u250C" + new string('\u2500', etiquetaIzq) + etiqueta + new string('\u2500', etiquetaDer) + "\u2510");
         MostrarFilaAcciones("[1] Consultar tareas", "[2] Agregar tarea", "[3] Editar tarea");
-        MostrarFilaAcciones("[4] Eliminar tarea", "[5] Filtrar tareas", "[6] Mostrar reporte");
-        MostrarFilaAcciones("[0] Guardar y salir", "", "");
+        MostrarFilaAcciones("[4] Eliminar tarea", "[5] Filtrar tareas", "[6] Gestionar categorias");
+        MostrarFilaAcciones("[7] Mostrar reporte", "[0] Guardar y salir", "");
         Console.WriteLine("\u2514" + new string('\u2500', anchoInterior) + "\u2518");
     }
 
@@ -659,50 +733,48 @@ class Program
 
     static string SeleccionarCategoria()
     {
+        List<string> todasLasCategorias = ObtenerTodasLasCategorias();
+        int opcionCrear = todasLasCategorias.Count + 1;
+
         Console.WriteLine();
         Console.WriteLine("Categorias:");
-        Console.WriteLine("1. Estudio");
-        Console.WriteLine("2. Trabajo");
-        Console.WriteLine("3. Personal");
-        Console.WriteLine("4. Salud");
-        Console.WriteLine("5. Hogar");
-        Console.WriteLine("6. Otra categoria");
+
+        for (int i = 0; i < todasLasCategorias.Count; i++)
+        {
+            Console.WriteLine((i + 1) + ". " + todasLasCategorias[i]);
+        }
+
+        Console.WriteLine(opcionCrear + ". Categoria personalizada");
         Console.WriteLine("0. Cancelar");
 
         int opcion = LeerOpcionEntera("Seleccione una categoria: ");
 
-        if (opcion == 1)
+        if (opcion >= 1 && opcion <= todasLasCategorias.Count)
         {
-            return "Estudio";
+            return todasLasCategorias[opcion - 1];
         }
-        else if (opcion == 2)
-        {
-            return "Trabajo";
-        }
-        else if (opcion == 3)
-        {
-            return "Personal";
-        }
-        else if (opcion == 4)
-        {
-            return "Salud";
-        }
-        else if (opcion == 5)
-        {
-            return "Hogar";
-        }
-        else if (opcion == 6)
+        else if (opcion == opcionCrear)
         {
             Console.Write("Nueva categoria: ");
             string categoria = Console.ReadLine() ?? "";
 
             if (string.IsNullOrWhiteSpace(categoria))
             {
-                Console.WriteLine("La categoria no puede estar vacia.");
+                MostrarMensajeError("La categoria no puede estar vacia.");
                 return "";
             }
 
-            return LimpiarSeparador(categoria.Trim());
+            categoria = LimpiarSeparador(categoria.Trim());
+
+            if (ExisteCategoria(categoria))
+            {
+                MostrarMensajeAdvertencia("La categoria ya existe.");
+                return "";
+            }
+
+            categoriasPersonalizadas.Add(categoria);
+            MostrarMensajeExito("Categoria personalizada agregada.");
+            return categoria;
         }
         else if (opcion == 0)
         {
@@ -998,6 +1070,311 @@ class Program
     }
 
     // =======================================
+    // FUNCIONES DE CATEGORIAS
+    // =======================================
+
+    static void GestionarCategorias()
+    {
+        int opcion;
+
+        do
+        {
+            LimpiarPantalla();
+            MostrarEncabezadoDoble("GESTIONAR CATEGORIAS");
+            Console.WriteLine();
+
+            MostrarEncabezadoSeccion("ACCIONES");
+            MostrarLineaCaja("[1] Ver categorias");
+            MostrarLineaCaja("[2] Agregar categoria personalizada");
+            MostrarLineaCaja("[3] Eliminar categoria personalizada");
+            MostrarLineaCaja("[0] Volver");
+            MostrarCierreCaja();
+
+            opcion = LeerOpcionEntera("Seleccione una opcion: ");
+            Console.WriteLine();
+
+            switch (opcion)
+            {
+                case 1:
+                    VerCategorias();
+                    PausarPantalla();
+                    break;
+                case 2:
+                    AgregarCategoriaPersonalizada();
+                    PausarPantalla();
+                    break;
+                case 3:
+                    EliminarCategoriaPersonalizada();
+                    PausarPantalla();
+                    break;
+                case 0:
+                    break;
+                default:
+                    MostrarMensajeError("Opcion no valida.");
+                    PausarPantalla();
+                    break;
+            }
+        }
+        while (opcion != 0);
+    }
+
+    static void VerCategorias()
+    {
+        List<string> categoriasBase = ObtenerCategoriasBase();
+        List<string> categoriasUsadas = ObtenerLineasCategoriasUsadasConTareas();
+
+        MostrarEncabezadoSeccion("CATEGORIAS BASE");
+        for (int i = 0; i < categoriasBase.Count; i++)
+        {
+            MostrarLineaCaja("- " + categoriasBase[i]);
+        }
+        MostrarCierreCaja();
+        Console.WriteLine();
+
+        MostrarEncabezadoSeccion("CATEGORIAS PERSONALIZADAS");
+        if (categoriasPersonalizadas.Count == 0)
+        {
+            MostrarLineaCaja("No hay categorias personalizadas.");
+        }
+        else
+        {
+            for (int i = 0; i < categoriasPersonalizadas.Count; i++)
+            {
+                MostrarLineaCaja("- " + categoriasPersonalizadas[i]);
+            }
+        }
+        MostrarCierreCaja();
+        Console.WriteLine();
+
+        MostrarEncabezadoSeccion("CATEGORIAS USADAS EN TAREAS");
+        if (categoriasUsadas.Count == 0)
+        {
+            MostrarLineaCaja("No hay categorias usadas en tareas.");
+        }
+        else
+        {
+            for (int i = 0; i < categoriasUsadas.Count; i++)
+            {
+                MostrarLineaCaja("- " + categoriasUsadas[i]);
+            }
+        }
+        MostrarCierreCaja();
+    }
+
+    static void AgregarCategoriaPersonalizada()
+    {
+        Console.Write("Nombre de categoria: ");
+        string categoria = Console.ReadLine() ?? "";
+
+        if (string.IsNullOrWhiteSpace(categoria))
+        {
+            MostrarMensajeError("La categoria no puede estar vacia.");
+            return;
+        }
+
+        categoria = LimpiarSeparador(categoria.Trim());
+
+        if (ExisteCategoria(categoria))
+        {
+            MostrarMensajeAdvertencia("La categoria ya existe.");
+            return;
+        }
+
+        categoriasPersonalizadas.Add(categoria);
+        MostrarMensajeExito("Categoria personalizada agregada.");
+    }
+
+    static void EliminarCategoriaPersonalizada()
+    {
+        if (categoriasPersonalizadas.Count == 0)
+        {
+            MostrarMensajeAdvertencia("No hay categorias personalizadas para eliminar.");
+            return;
+        }
+
+        MostrarEncabezadoSeccion("CATEGORIAS PERSONALIZADAS");
+        for (int i = 0; i < categoriasPersonalizadas.Count; i++)
+        {
+            MostrarLineaCaja("[" + (i + 1) + "] " + categoriasPersonalizadas[i]);
+        }
+        MostrarLineaCaja("[0] Volver");
+        MostrarCierreCaja();
+
+        int opcion = LeerOpcionEntera("Seleccione una categoria: ");
+
+        if (opcion == 0)
+        {
+            MostrarMensajeAdvertencia("Operacion cancelada.");
+            return;
+        }
+
+        if (opcion < 1 || opcion > categoriasPersonalizadas.Count)
+        {
+            MostrarMensajeError("Opcion no valida.");
+            return;
+        }
+
+        string categoria = categoriasPersonalizadas[opcion - 1];
+        int usos = ContarUsoCategoria(categoria);
+
+        if (usos > 0)
+        {
+            MostrarMensajeAdvertencia(
+                "Categoria en uso por " +
+                usos +
+                " tarea(s). No se elimina.");
+            return;
+        }
+
+        Console.Write("Eliminar '" + categoria + "'? (S/N): ");
+        string confirmacion = (Console.ReadLine() ?? "").Trim().ToUpper();
+
+        if (confirmacion == "S")
+        {
+            categoriasPersonalizadas.RemoveAt(opcion - 1);
+            MostrarMensajeExito("Categoria personalizada eliminada.");
+        }
+        else
+        {
+            MostrarMensajeAdvertencia("Operacion cancelada.");
+        }
+    }
+
+    static List<string> ObtenerCategoriasBase()
+    {
+        List<string> categoriasBase = new List<string>();
+        categoriasBase.Add("Estudio");
+        categoriasBase.Add("Trabajo");
+        categoriasBase.Add("Personal");
+        categoriasBase.Add("Salud");
+        categoriasBase.Add("Hogar");
+        return categoriasBase;
+    }
+
+    static List<string> ObtenerTodasLasCategorias()
+    {
+        List<string> todasLasCategorias = new List<string>();
+        List<string> categoriasBase = ObtenerCategoriasBase();
+
+        for (int i = 0; i < categoriasBase.Count; i++)
+        {
+            AgregarCategoriaSinDuplicar(todasLasCategorias, categoriasBase[i]);
+        }
+
+        for (int i = 0; i < categoriasPersonalizadas.Count; i++)
+        {
+            AgregarCategoriaSinDuplicar(todasLasCategorias, categoriasPersonalizadas[i]);
+        }
+
+        for (int i = 0; i < categorias.Count; i++)
+        {
+            AgregarCategoriaSinDuplicar(todasLasCategorias, categorias[i]);
+        }
+
+        return todasLasCategorias;
+    }
+
+    static List<string> ObtenerLineasCategoriasUsadasConTareas()
+    {
+        List<string> categoriasEncontradas = new List<string>();
+        List<string> tareasPorCategoria = new List<string>();
+
+        for (int i = 0; i < categorias.Count; i++)
+        {
+            string categoria = categorias[i].Trim();
+            string titulo = titulos[i].Trim();
+
+            if (string.IsNullOrWhiteSpace(categoria))
+            {
+                continue;
+            }
+
+            int indiceCategoria = BuscarIndiceCategoria(categoriasEncontradas, categoria);
+
+            if (indiceCategoria == -1)
+            {
+                categoriasEncontradas.Add(categoria);
+                tareasPorCategoria.Add(titulo);
+            }
+            else
+            {
+                tareasPorCategoria[indiceCategoria] =
+                    tareasPorCategoria[indiceCategoria] + ", " + titulo;
+            }
+        }
+
+        List<string> lineas = new List<string>();
+
+        for (int i = 0; i < categoriasEncontradas.Count; i++)
+        {
+            lineas.Add(categoriasEncontradas[i] + ": " + tareasPorCategoria[i]);
+        }
+
+        return lineas;
+    }
+
+    static int BuscarIndiceCategoria(List<string> lista, string categoria)
+    {
+        for (int i = 0; i < lista.Count; i++)
+        {
+            if (string.Equals(lista[i], categoria, StringComparison.OrdinalIgnoreCase))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    static int ContarUsoCategoria(string categoria)
+    {
+        int contador = 0;
+
+        for (int i = 0; i < categorias.Count; i++)
+        {
+            if (string.Equals(categorias[i].Trim(), categoria, StringComparison.OrdinalIgnoreCase))
+            {
+                contador++;
+            }
+        }
+
+        return contador;
+    }
+
+    static bool ExisteCategoria(string categoria)
+    {
+        return ExisteEnLista(ObtenerTodasLasCategorias(), categoria);
+    }
+
+    static void AgregarCategoriaSinDuplicar(List<string> lista, string categoria)
+    {
+        categoria = LimpiarSeparador(categoria.Trim());
+
+        if (string.IsNullOrWhiteSpace(categoria))
+        {
+            return;
+        }
+
+        if (!ExisteEnLista(lista, categoria))
+        {
+            lista.Add(categoria);
+        }
+    }
+
+    static bool ExisteEnLista(List<string> lista, string texto)
+    {
+        for (int i = 0; i < lista.Count; i++)
+        {
+            if (string.Equals(lista[i], texto, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // =======================================
     // FUNCIONES DE FILTROS Y REPORTES
     // =======================================
 
@@ -1020,6 +1397,7 @@ class Program
         MostrarLineaCaja("[2] Por estado");
         MostrarLineaCaja("[3] Por categoria");
         MostrarLineaCaja("[4] Por fecha limite");
+        MostrarLineaCaja("[5] Buscar tarea por nombre");
         MostrarLineaCaja("[0] Volver");
         MostrarCierreCaja();
 
@@ -1038,6 +1416,9 @@ class Program
                 break;
             case 4:
                 FiltrarPorFecha();
+                break;
+            case 5:
+                BuscarTareaPorNombre();
                 break;
             case 0:
                 return;
@@ -1166,9 +1547,9 @@ class Program
         MostrarEncabezadoDoble("FILTRAR POR CATEGORIA");
         Console.WriteLine();
 
-        List<string> categoriasExistentes = ObtenerCategoriasExistentes();
+        List<string> todasLasCategorias = ObtenerTodasLasCategorias();
 
-        if (categoriasExistentes.Count == 0)
+        if (todasLasCategorias.Count == 0)
         {
             MostrarMensajeAdvertencia("No hay categorias registradas.");
             return;
@@ -1176,50 +1557,57 @@ class Program
 
         MostrarEncabezadoSeccion("CATEGORIAS DISPONIBLES");
 
-        for (int i = 0; i < categoriasExistentes.Count; i++)
+        for (int i = 0; i < todasLasCategorias.Count; i++)
         {
-            MostrarLineaCaja("[" + (i + 1) + "] " + categoriasExistentes[i]);
+            MostrarLineaCaja("[" + (i + 1) + "] " + todasLasCategorias[i]);
         }
 
-        MostrarLineaCaja("[M] Busqueda manual");
         MostrarLineaCaja("[0] Volver");
         MostrarCierreCaja();
-        Console.Write("Seleccione una opcion: ");
 
-        string entrada = (Console.ReadLine() ?? "").Trim();
+        int opcion = LeerOpcionEntera("Seleccione una opcion: ");
 
-        if (entrada == "0")
+        if (opcion == 0)
         {
             MostrarMensajeAdvertencia("Operacion cancelada.");
             return;
         }
 
-        if (entrada.ToUpper() == "M")
-        {
-            Console.Write("Texto de busqueda: ");
-            string busqueda = (Console.ReadLine() ?? "").Trim();
-
-            if (string.IsNullOrWhiteSpace(busqueda))
-            {
-                MostrarMensajeError("Debe ingresar una categoria para filtrar.");
-                return;
-            }
-
-            MostrarResultadosPorCategoria(busqueda, false);
-            return;
-        }
-
-        int opcion;
-
-        if (!int.TryParse(entrada, out opcion) ||
-            opcion < 1 ||
-            opcion > categoriasExistentes.Count)
+        if (opcion < 1 || opcion > todasLasCategorias.Count)
         {
             MostrarMensajeError("Opcion no valida.");
             return;
         }
 
-        MostrarResultadosPorCategoria(categoriasExistentes[opcion - 1], true);
+        MostrarResultadosPorCategoria(todasLasCategorias[opcion - 1]);
+    }
+
+    static void BuscarTareaPorNombre()
+    {
+        LimpiarPantalla();
+        MostrarEncabezadoDoble("BUSCAR TAREA POR NOMBRE");
+        Console.WriteLine();
+
+        Console.Write("Texto de busqueda: ");
+        string busqueda = (Console.ReadLine() ?? "").Trim();
+
+        if (string.IsNullOrWhiteSpace(busqueda))
+        {
+            MostrarMensajeError("Debe ingresar un texto de busqueda.");
+            return;
+        }
+
+        List<int> resultados = new List<int>();
+
+        for (int i = 0; i < titulos.Count; i++)
+        {
+            if (titulos[i].IndexOf(busqueda, StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                resultados.Add(i);
+            }
+        }
+
+        MostrarResultadosFiltro(resultados);
     }
 
     static void FiltrarPorFecha()
@@ -1265,42 +1653,6 @@ class Program
         }
     }
 
-    static List<string> ObtenerCategoriasExistentes()
-    {
-        List<string> categoriasExistentes = new List<string>();
-
-        for (int i = 0; i < categorias.Count; i++)
-        {
-            string categoria = categorias[i].Trim();
-
-            if (string.IsNullOrWhiteSpace(categoria))
-            {
-                continue;
-            }
-
-            bool repetida = false;
-
-            for (int j = 0; j < categoriasExistentes.Count; j++)
-            {
-                if (string.Equals(
-                    categoriasExistentes[j],
-                    categoria,
-                    StringComparison.OrdinalIgnoreCase))
-                {
-                    repetida = true;
-                    break;
-                }
-            }
-
-            if (!repetida)
-            {
-                categoriasExistentes.Add(categoria);
-            }
-        }
-
-        return categoriasExistentes;
-    }
-
     static void MostrarResultadosPorPrioridad(string prioridad)
     {
         List<int> resultados = new List<int>();
@@ -1331,18 +1683,15 @@ class Program
         MostrarResultadosFiltro(resultados);
     }
 
-    static void MostrarResultadosPorCategoria(string categoria, bool coincidenciaExacta)
+    static void MostrarResultadosPorCategoria(string categoria)
     {
         List<int> resultados = new List<int>();
 
         for (int i = 0; i < titulos.Count; i++)
         {
             string categoriaTarea = categorias[i].Trim();
-            bool coincide = coincidenciaExacta
-                ? string.Equals(categoriaTarea, categoria, StringComparison.OrdinalIgnoreCase)
-                : categoriaTarea.ToLower().Contains(categoria.ToLower());
 
-            if (coincide)
+            if (string.Equals(categoriaTarea, categoria, StringComparison.OrdinalIgnoreCase))
             {
                 resultados.Add(i);
             }
@@ -1439,6 +1788,61 @@ class Program
         catch
         {
             Console.WriteLine("Error al cargar las tareas.");
+        }
+    }
+
+    static void GuardarCategorias()
+    {
+        try
+        {
+            using (StreamWriter escritor = new StreamWriter(ArchivoCategorias))
+            {
+                for (int i = 0; i < categoriasPersonalizadas.Count; i++)
+                {
+                    escritor.WriteLine(LimpiarSeparador(categoriasPersonalizadas[i].Trim()));
+                }
+            }
+        }
+        catch
+        {
+            Console.WriteLine("Error al guardar las categorias.");
+        }
+    }
+
+    static void CargarCategorias()
+    {
+        categoriasPersonalizadas.Clear();
+
+        if (!File.Exists(ArchivoCategorias))
+        {
+            return;
+        }
+
+        try
+        {
+            using (StreamReader lector = new StreamReader(ArchivoCategorias))
+            {
+                string? linea;
+
+                while ((linea = lector.ReadLine()) != null)
+                {
+                    if (string.IsNullOrWhiteSpace(linea))
+                    {
+                        continue;
+                    }
+
+                    string categoria = LimpiarSeparador(linea.Trim());
+
+                    if (!ExisteCategoria(categoria))
+                    {
+                        categoriasPersonalizadas.Add(categoria);
+                    }
+                }
+            }
+        }
+        catch
+        {
+            Console.WriteLine("Error al cargar las categorias.");
         }
     }
 
